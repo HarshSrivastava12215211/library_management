@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "library-app"
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git url: 'https://github.com/HarshSrivastava12215211/library_management.git', branch: 'main'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                bat '''
+                    echo 🛠️ Building Docker image...
+                    if exist build_and_deploy.bat (
+                        call build_and_deploy.bat || exit /b 1
+                    ) else (
+                        echo  build_and_deploy.bat not found, running Docker build...
+                        docker build -t %IMAGE_NAME% . || exit /b 1
+                    )
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Docker image built successfully!'
+        }
+        failure {
+            echo 'Build failed. Please check the logs.'
+        }
+    }
+}
